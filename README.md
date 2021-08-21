@@ -1,5 +1,5 @@
-# Pipeline Academy - Project Outline
-## Davide Posillipo
+# JW-NLP: an AI-powered tool to explore the JW.org literature
+## Davide Posillipo (as Pipeline Academy portfolio project)
 
 ### Abstract
 In this project I want to focus on textual data extracted from a website via web scraping. The goal is to set up a data infrastructure that includes a scraper, a database for the extracted data, a machine learning engine for NLP tasks and a front-end for interactive analysis of the data. The idea is to provide a *power tool* for users with domain knowledge. 
