@@ -18,7 +18,7 @@ def get_years(url):
 
     return wt_for_years_dict
 
-def get_months(url):
+def get_wt_links_by_month(url):
     '''
     Only for issues up to 2015 (included). 
     Afterwards, the naming changes. 
@@ -31,11 +31,17 @@ def get_months(url):
     # Cleaning to focus on the whole month
     months_cleaned = set([m.split('-')[0] for m in months])
     
-    wt_for_months_dict = dict()
+    wt_by_month_dict = dict()
     for m in months_cleaned:
-        wt_for_months_dict[m] = [x for x in only_links if x.split('/')[-1].split('-')[0] == m]
+        issues_in_month = [x for x in only_links if x.split('/')[-1].split('-')[0] == m]
+        # From 2008, a single issue for each version-month
+        if len(issues_in_month) == 1:
+            wt_by_month_dict[m] = issues_in_month[0]
+        # Up to 2097, two issues for each month
+        else:
+            wt_by_month_dict[m] = issues_in_month
 
-    return wt_for_months_dict
+    return wt_by_month_dict 
 
 def get_public_or_study(url):
     '''
@@ -49,6 +55,36 @@ def get_public_or_study(url):
     study = [x for x in only_links if x.split('/')[-1] == 'study-edition'][0]
 
     return public, study
+
+def get_wt_links_by_month_post_2015(url):
+    '''
+    Retrieves the links for both study and public version, from 2016.
+    This is needed due to the new naming convention
+    introduced in 2016. 
+    '''
+    parsed_page = parse_page(url)
+    only_links = extract_links(parsed_page)
+
+    wt_by_month_dict = dict(zip([x.split('/')[-1] for x in only_links], only_links))
+
+    return wt_by_month_dict 
+
+def get_articles_links_by_title(url):
+    '''
+    Extract from the main page of an issue all the article titles
+    and the corresponding links. 
+    '''
+    parsed_page = parse_page(url)
+    only_links = extract_links(parsed_page)
+
+    title_sections = parsed_page.findAll('div', class_ = re.compile('^cardLine1')) 
+    # using the BS stripped_strings generator to extract the clean text
+    get_title = lambda x: next(x.stripped_strings)
+    only_titles = [get_title(s) for s in title_sections]
+
+    articles_by_title = dict(zip(only_titles, only_links))
+
+    return articles_by_title
 
 def parse_page(url):
     
@@ -78,12 +114,26 @@ if __name__ == "__main__":
     links =  get_years(url)
     #print(links)
 
-    links_a_month = get_months(links[2007])
-    print(links_a_month) 
+    links_by_year = get_wt_links_by_month(links[2007])
+    print(links_by_year) 
+
+    print("")
 
     y_2008_pub, y_2008_study = get_public_or_study(links[2008])
-    links_2008_public = get_months(y_2008_pub)
+    links_2008_public = get_wt_links_by_month(y_2008_pub)
     print(links_2008_public)
-    links_2008_study = get_months(y_2008_study)
+    links_2008_study = get_wt_links_by_month(y_2008_study)
     print(links_2008_study)
+
+    print("")
     
+    y_2018_pub, y_2018_study = get_public_or_study(links[2018])
+    links_2018_public = get_wt_links_by_month_post_2015(y_2018_pub)
+    print(links_2018_public)
+    links_2018_study = get_wt_links_by_month_post_2015(y_2018_study)
+    print(links_2018_study)
+    
+    print("")
+
+    dec_08_articles_by_title = get_articles_links_by_title(links_2008_public['december'])
+    print(dec_08_articles_by_title) 
