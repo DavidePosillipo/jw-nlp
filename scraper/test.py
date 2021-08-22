@@ -86,6 +86,55 @@ def get_articles_links_by_title(url):
 
     return articles_by_title
 
+def get_articles_links_by_title_v2(url):
+    '''
+    Extract from the main page of an issue all the article titles
+    and the corresponding links. Handles the multi-lines titles. 
+    '''
+
+    parsed_page = parse_page(url)
+    only_links = extract_links(parsed_page)
+
+    sections = parsed_page.findAll('a', class_ = re.compile('^jwac'))
+
+    # using the BS stripped_strings generator to extract the clean text
+    get_title = lambda x: next(x.stripped_strings)
+
+    only_titles = []
+    for s in sections:
+        title_blocks = s.findAll('div', class_ = re.compile('^cardLine'))
+        titles = [get_title(block) for block in title_blocks]
+        titles_joined = ' - '.join(titles)
+
+        only_titles.append(titles_joined)    
+
+    articles_by_title = dict(zip(only_titles, only_links))
+
+    return articles_by_title
+
+def extract_text_from_article(url):
+    '''
+    Extract the text from the paragraphs inside the
+    articles page
+    '''
+    parsed_page = parse_page(url)
+
+    article = parsed_page.find('article')
+    paragraphs = article.findAll('p')
+
+    text = []
+    for p in paragraphs:
+        p_iterator = p.stripped_strings
+        p_text = []
+        for chunk in p_iterator:
+            #print(chunk)
+            p_text.append(chunk)
+        # storing paragraph text in output list
+        text.append(' '.join(p_text))
+
+    return text
+            
+
 def parse_page(url):
     
     page = requests.get(url)
@@ -111,29 +160,33 @@ if __name__ == "__main__":
     url = 'https://wol.jw.org/en/wol/library/r1/lp-e/all-publications/watchtower'
     root = 'https://wol.jw.org'
 
-    links =  get_years(url)
+    #links =  get_years(url)
     #print(links)
 
-    links_by_year = get_wt_links_by_month(links[2007])
-    print(links_by_year) 
+    #links_by_year = get_wt_links_by_month(links[2007])
+    #print(links_by_year) 
 
-    print("")
+    #print("")
 
-    y_2008_pub, y_2008_study = get_public_or_study(links[2008])
-    links_2008_public = get_wt_links_by_month(y_2008_pub)
-    print(links_2008_public)
-    links_2008_study = get_wt_links_by_month(y_2008_study)
-    print(links_2008_study)
+    #y_2008_pub, y_2008_study = get_public_or_study(links[2008])
+    #links_2008_public = get_wt_links_by_month(y_2008_pub)
+    #print(links_2008_public)
+    #links_2008_study = get_wt_links_by_month(y_2008_study)
+    #print(links_2008_study)
 
-    print("")
-    
-    y_2018_pub, y_2018_study = get_public_or_study(links[2018])
-    links_2018_public = get_wt_links_by_month_post_2015(y_2018_pub)
-    print(links_2018_public)
-    links_2018_study = get_wt_links_by_month_post_2015(y_2018_study)
-    print(links_2018_study)
-    
-    print("")
+    #print("")
+    #
+    #y_2018_pub, y_2018_study = get_public_or_study(links[2018])
+    #links_2018_public = get_wt_links_by_month_post_2015(y_2018_pub)
+    #print(links_2018_public)
+    #links_2018_study = get_wt_links_by_month_post_2015(y_2018_study)
+    #print(links_2018_study)
+    #
+    #print("")
 
-    dec_08_articles_by_title = get_articles_links_by_title(links_2008_public['december'])
-    print(dec_08_articles_by_title) 
+    #dec_08_articles_by_title = get_articles_links_by_title_v2(links_2008_public['december'])
+    #print(dec_08_articles_by_title) 
+
+    #print("")
+    an_article = extract_text_from_article('https://wol.jw.org/en/wol/d/r1/lp-e/2008885')
+    print(an_article) 
