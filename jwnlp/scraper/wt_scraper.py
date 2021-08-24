@@ -46,7 +46,7 @@ class wtScraper:
             # From 2008, a single issue for each version-month
             if len(issues_in_month) == 1:
                 wt_by_month_dict[m] = issues_in_month[0]
-            # Up to 2097, two issues for each month
+            # Up to 2007, two issues for each month
             else:
                 wt_by_month_dict[m] = issues_in_month
     
@@ -108,41 +108,35 @@ class wtScraper:
         return articles_by_title
     
 
-    def extract_paragraphs_from_article(self, url):
+    def scrape_page(self, url):
         '''
-        Generator that extract the text from the paragraphs inside the
-        articles page
+        Scrapes the page from the url with no
+        further processing
         '''
-        parsed_page = self.parse_page(url)
-    
-        article = parsed_page.find('article')
-        paragraphs = article.findAll('p')
-    
-        #text = []
-        for p in paragraphs:
-            p_iterator = p.stripped_strings
-            p_text = []
-            for chunk in p_iterator:
-                p_text.append(chunk)
-            # storing paragraph text in output list
-            # text.append(' '.join(p_text))
+        scraped_page = requests.get(url).text
 
-            # yielding the paragraph text
-            yield ' '.join(p_text)
-    
-        return text
-                
-    
+        return scraped_page  
+
+
+    def dump_scraped_page(self, scraped_page):
+        '''
+        Saves the scraped raw page in a document database
+        '''
+        #TODO
+        pass 
+
+ 
     def parse_page(self, url):
         '''
         Open the url and use BeautifulSoup to 
         parse the xml tree
         ''' 
-        page = requests.get(url)
-        parsed_page = BeautifulSoup(page.text, 'lxml')
+        scraped_page = self.scrape_page(url)
+        parsed_page = BeautifulSoup(scraped_page, 'lxml')
     
         return parsed_page 
     
+
     def extract_links(self, parsed_page):
         '''
         Extract the links from the page, using the convention
