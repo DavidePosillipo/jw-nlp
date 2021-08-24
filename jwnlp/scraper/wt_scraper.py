@@ -108,9 +108,9 @@ class wtScraper:
         return articles_by_title
     
 
-    def extract_text_from_article(self, url):
+    def extract_paragraphs_from_article(self, url):
         '''
-        Extract the text from the paragraphs inside the
+        Generator that extract the text from the paragraphs inside the
         articles page
         '''
         parsed_page = self.parse_page(url)
@@ -118,14 +118,17 @@ class wtScraper:
         article = parsed_page.find('article')
         paragraphs = article.findAll('p')
     
-        text = []
+        #text = []
         for p in paragraphs:
             p_iterator = p.stripped_strings
             p_text = []
             for chunk in p_iterator:
                 p_text.append(chunk)
             # storing paragraph text in output list
-            text.append(' '.join(p_text))
+            # text.append(' '.join(p_text))
+
+            # yielding the paragraph text
+            yield ' '.join(p_text)
     
         return text
                 
