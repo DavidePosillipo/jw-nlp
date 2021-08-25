@@ -1,5 +1,6 @@
 from jwnlp.scraper.wt_scraper import wtScraper
 import json
+import pickle
 
 if __name__ == '__main__':
 
@@ -13,10 +14,10 @@ if __name__ == '__main__':
     articles_links_post_2008_public = dict()
 
     for year in links_by_year.keys():
-        print("Working on year ", year)
+        #print("Working on year ", year)
         issues_links = dict()
         # for the years from 1950 to 2007
-        if year<2008:
+        if year==2007:
             issues_links = scraper.get_wt_links_by_month(links_by_year[year]) 
             for month in issues_links.keys():
                 print(month)
@@ -25,11 +26,12 @@ if __name__ == '__main__':
                 # Second issue of the month ("15")
                 articles_links_pre_2008[(year, month, "no-15")] = scraper.get_articles_links_by_title(issues_links[month][1])
         else:
-            print('todo')
+            #print('todo')
             #TODO
+            pass
 
-    with open("./temp/links.json", "w") as f:
-        json.dump(articles_links_pre_2008, f) 
+    with open("./temp/links.pkl", "wb") as f:
+        pickle.dump(articles_links_pre_2008, f) 
             
         
         
