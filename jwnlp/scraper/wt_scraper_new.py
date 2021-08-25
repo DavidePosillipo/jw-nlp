@@ -1,6 +1,8 @@
 import requests
 import re
 from bs4 import BeautifulSoup
+import aiohttp
+import asyncio
 
 class wtScraper:
 
@@ -15,8 +17,8 @@ class wtScraper:
         Access the mainpage and retrieve the links for each single
         year of WT
         '''
-    
-        parsed_page = self.parse_page(self.homepage)
+        scraped_homepage = self.scrape_page(self.homepage) 
+        parsed_page = self.parse_page(scraped_homepage)
      
         only_links = self.extract_links(parsed_page)
         
@@ -25,14 +27,14 @@ class wtScraper:
         wt_for_years_dict = dict(zip(years, only_links))
     
         return wt_for_years_dict
-    
 
-    def get_wt_links_by_month(self, url):
+    
+    def get_wt_links_by_month(self, response):
         '''
         Only for issues up to 2015 (included). 
         Afterwards, the naming changes. 
         '''
-        parsed_page = self.parse_page(url)
+        parsed_page = self.parse_page(response)
         only_links = self.extract_links(parsed_page)
         
         # Two issues for months
@@ -126,12 +128,9 @@ class wtScraper:
         pass 
 
  
-    def parse_page(self, url):
+    def parse_page(self, scraped_page):
         '''
-        Open the url and use BeautifulSoup to 
-        parse the xml tree
         ''' 
-        scraped_page = self.scrape_page(url)
         parsed_page = BeautifulSoup(scraped_page, 'lxml')
     
         return parsed_page 
@@ -146,7 +145,16 @@ class wtScraper:
         subset_with_links = parsed_page.findAll('a', attrs = {'href': re.compile('.*'), 'class': re.compile('^jwac')}) 
         only_links = [self.root + x['href'] for x in subset_with_links]
         
-        return only_links 
+        return only_links
+
+
+    async def get_page_content(self, url, session):
+
+        response = await session.request(method='GET', url=url)
+        
+        return await response.text()
+
+
 
 # if __name__ == "__main__":
 
