@@ -29,10 +29,18 @@ class wtScraper:
         return wt_for_years_dict
 
     
-    def get_wt_links_by_month(self, response):
+    def get_wt_links_by_month_old(self, response):
         '''
         Only for issues up to 2015 (included). 
         Afterwards, the naming changes. 
+
+        Args:
+            response (str): text fetched from the url (result of GET)
+
+        Returns:
+            dict: {year(int): links(list)}, where the links can have 
+            one link or two links (one link from 2008, two links before)
+
         '''
         parsed_page = self.parse_page(response)
         only_links = self.extract_links(parsed_page)
@@ -55,12 +63,20 @@ class wtScraper:
         return wt_by_month_dict 
     
 
-    def get_public_or_study(self, url):
+    def get_public_or_study(self, response):
         '''
         Needed from 2008 (included), year of the 
-        introduction of Study and Public editions
+        introduction of Study and Public editions. It looks 
+        for the links to the two different editions. 
+     
+        Args:
+            response (str): text fetched with a GET, from the page of 
+            a specific month of WT
+
+        Returns:
+            str, str: the two links to the public and study editions
         '''
-        parsed_page = self.parse_page(url)
+        parsed_page = self.parse_page(response)
         only_links = self.extract_links(parsed_page)
     
         public = [x for x in only_links if x.split('/')[-1] == 'public-edition'][0]
@@ -69,13 +85,20 @@ class wtScraper:
         return public, study
     
 
-    def get_wt_links_by_month_post_2015(self, url):
+    def get_issues_links(self, response):
         '''
-        Retrieves the links for both study and public version, from 2016.
-        This is needed due to the new naming convention
-        introduced in 2016. 
+        Retrieves the links for each issue of a single year. 
+
+        Args:
+            response (str): text fetched with a GET, from the page of a public 
+            or study edition with the name convention valid from 2016
+
+        Returns:
+            dict: {issue_id(str): link(str)}, dictionary with a URL for each 
+            issue of the input month/edition. The issue_id can be a month 
+            followed by 1 or 15, or a string like 'no1', depending on the year.
         '''
-        parsed_page = self.parse_page(url)
+        parsed_page = self.parse_page(response)
         only_links = self.extract_links(parsed_page)
     
         wt_by_month_dict = dict(zip([x.split('/')[-1] for x in only_links], only_links))
@@ -83,13 +106,20 @@ class wtScraper:
         return wt_by_month_dict 
     
 
-    def get_articles_links_by_title(self, url):
+    def get_articles_links_by_title(self, response):
         '''
         Extract from the main page of an issue all the article titles
         and the corresponding links. Handles the multi-lines titles. 
+    
+        Args:
+            response (str): text fetched with a GET from the issue's URL
+
+        Returns:
+            dict: {title(str): link(str)}, dictionary with a link for each
+            article; the key is the article's title
         '''
     
-        parsed_page = self.parse_page(url)
+        parsed_page = self.parse_page(response)
         only_links = self.extract_links(parsed_page)
     
         sections = parsed_page.findAll('a', class_ = re.compile('^jwac'))
