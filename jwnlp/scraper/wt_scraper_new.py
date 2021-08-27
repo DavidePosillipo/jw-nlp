@@ -150,12 +150,20 @@ class wtScraper:
         return scraped_page  
 
 
-    def dump_scraped_page(self, scraped_page):
+    def dump_scraped_page(self, folder: str, response: str, file_name: str):
         '''
-        Saves the scraped raw page in a document database
+        Saves the scraped raw page as txt file
+
+        Args:
+            folder (str): the output folder
+            response (str): the fetched content of the page, obtained with a GET
+            file_name (str): the name of the txt file
+
+        Returns:
+            None
         '''
-        #TODO
-        pass 
+        with open(os.path.join(folder, file_name + '.txt'), 'w') as f:
+            f.write(response, f)
 
  
     def parse_page(self, scraped_page):
@@ -177,47 +185,3 @@ class wtScraper:
         
         return only_links
 
-
-    async def get_page_content(self, url, session):
-
-        response = await session.request(method='GET', url=url)
-        
-        return await response.text()
-
-
-
-# if __name__ == "__main__":
-
-   # url = 'https://wol.jw.org/en/wol/library/r1/lp-e/all-publications/watchtower'
-   # root = 'https://wol.jw.org'
-
-    #links =  get_years(url)
-    #print(links)
-
-    #links_by_year = get_wt_links_by_month(links[2007])
-    #print(links_by_year) 
-
-    #print("")
-
-    #y_2008_pub, y_2008_study = get_public_or_study(links[2008])
-    #links_2008_public = get_wt_links_by_month(y_2008_pub)
-    #print(links_2008_public)
-    #links_2008_study = get_wt_links_by_month(y_2008_study)
-    #print(links_2008_study)
-
-    #print("")
-    #
-    #y_2018_pub, y_2018_study = get_public_or_study(links[2018])
-    #links_2018_public = get_wt_links_by_month_post_2015(y_2018_pub)
-    #print(links_2018_public)
-    #links_2018_study = get_wt_links_by_month_post_2015(y_2018_study)
-    #print(links_2018_study)
-    #
-    #print("")
-
-    #dec_08_articles_by_title = get_articles_links_by_title_v2(links_2008_public['december'])
-    #print(dec_08_articles_by_title) 
-
-    #print("")
-    #an_article = extract_text_from_article('https://wol.jw.org/en/wol/d/r1/lp-e/2008885')
-    #print(an_article) 
