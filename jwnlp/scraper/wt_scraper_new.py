@@ -3,6 +3,8 @@ import re
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
+import os
+import logging
 
 class wtScraper:
 
@@ -163,7 +165,7 @@ class wtScraper:
             None
         '''
         with open(os.path.join(folder, file_name + '.txt'), 'w') as f:
-            f.write(response, f)
+            f.write(response)
 
  
     def parse_page(self, scraped_page):

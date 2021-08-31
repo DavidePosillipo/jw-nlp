@@ -6,14 +6,24 @@ import pickle
 import aiohttp
 import asyncio
 from pathlib import Path
+import logging
+import traceback
+import sys
+
+logging.basicConfig(filename='scraping.log', level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 if __name__ == '__main__':
+ 
+    logger = logging.getLogger(__name__)
 
     # async functions 
     #TODO put them in a different module (is it possible?)
     async def fetch(url, session):
-         async with session.get(url) as response: 
-             return await response.text() 
+        try:
+            async with session.get(url) as response: 
+                return await response.text() 
+        except aiohttp.ClientConnectorError as e:
+            logger.error(f"Error {e} encountered for url {url}")
     
     
     async def extract(extracting_function, target_urls, save_raw_response=False, **kwargs):
@@ -31,19 +41,29 @@ if __name__ == '__main__':
                     file_name = page_url.split('/')[-1]
                     scraper.dump_scraped_page(folder=kwargs['folder'], response=page_content, file_name=file_name)
 
-            extracted_elements = [extracting_function(page) for page in pages_contents]
-            output_dict = dict(zip(target_urls.keys(), extracted_elements))
+            #extracted_elements = [extracting_function(page) for page in pages_contents]
+            #output_dict = dict(zip(target_urls.keys(), extracted_elements))
+
+            # explicit loop instead of list comprehension to handle exception element-wise
+            output_dict = dict()
+            for key, page in zip(target_urls.keys(), pages_contents):
+                try:
+                    extracted_element = extracting_function(page)
+                    output_dict[key] = extracted_element
+                except Exception as e:
+                    logger.error("An error occurred while processing the page ", target_urls[key], " . The error is ", traceback.format_exception(*sys.exc_info()))
                 
             return(output_dict)
     
     language = 'en'
     scraper = wtScraper(language)
 
+    logger.info("STEP 0 - Scraping the years")
     links_by_year = scraper.get_years() 
 
     #### STEP 1 ####
     # Retrieving the issues links for the WT up to 2007
-
+    logger.info("STEP 1 - Retrieving issues links")
     links_by_year_pre_2008 = {y: l for (y, l) in links_by_year.items() if y<2008}
     loop = asyncio.get_event_loop()
     future = asyncio.ensure_future(extract(scraper.get_issues_links, links_by_year_pre_2008))
@@ -53,7 +73,7 @@ if __name__ == '__main__':
 
     #### STEP 2 ####
     # Retrieving the issues links for the WT from 2008
-
+    logger.info("STEP 2 - Retrieving issues links post 2007")
     # A link for each year, but not to the issue, but to the study-public fork
     links_by_year_from_2008 = {y: l for (y, l) in links_by_year.items() if y>=2008}
 
@@ -84,6 +104,7 @@ if __name__ == '__main__':
 
 
     #### STEP 3 ####
+    logger.info("STEP 3 - Retrieving articles links")
     # Retrieve the articles links from each issue
     # {year: {issue_id: {article_title: article_url, ...}, ...}, ...}
     articles_links_pre_2008 = dict()
@@ -93,8 +114,6 @@ if __name__ == '__main__':
     ## STEP 3.1 ##
     # Pre-2008 articles' links
     for year, year_issues_dict in issues_links_pre_2008.items():
-        # For debug
-        #if year==2003:
         print("Getting articles links for year", year)
         loop = asyncio.get_event_loop()
         future = asyncio.ensure_future(extract(scraper.get_articles_links_by_title, year_issues_dict)) 
@@ -128,6 +147,7 @@ if __name__ == '__main__':
 
 
     #### STEP 4 ####
+    logger.info("STEP 4 - Extracting articles and saving them to JSON")
     # Extracting text from each article and saving them to json 
     parser = ArticleParser(publication="watchtower")
 
@@ -143,7 +163,6 @@ if __name__ == '__main__':
         for issue in this_year_issues.keys():
 
             # Creating the output folders if needed
-            #TODO to put in try/catch
             output_folder_raw = "./data/raw/generic/" + str(year) + "/" + issue
             Path(output_folder_raw).mkdir(parents=True, exist_ok=True)
             output_folder_parsed = "./data/parsed/generic/" + str(year) + "/" + issue
@@ -162,7 +181,7 @@ if __name__ == '__main__':
 
             # Saving the articles as json files
             for article_title, article_text in this_issue_articles_paragraphs_text.items():
-                article_url = this_issues_articles[article_title]
+                article_url = this_issue_articles[article_title]
                 parser.save_article_to_json(
                                              output_folder = output_folder_parsed,
                                              year = year,
@@ -188,7 +207,6 @@ if __name__ == '__main__':
         for issue in this_year_issues.keys():
 
             # Creating the output folders if needed
-            #TODO to put in try/catch
             output_folder_raw = "./data/raw/study/" + str(year) + "/" + issue
             Path(output_folder_raw).mkdir(parents=True, exist_ok=True)
             output_folder_parsed = "./data/parsed/study/" + str(year) + "/" + issue
@@ -207,7 +225,7 @@ if __name__ == '__main__':
 
             # Saving the articles as json files
             for article_title, article_text in this_issue_articles_paragraphs_text.items():
-                article_url = this_issues_articles[article_title]
+                article_url = this_issue_articles[article_title]
                 parser.save_article_to_json(
                                              output_folder = output_folder_parsed,
                                              year = year,
@@ -232,7 +250,6 @@ if __name__ == '__main__':
         for issue in this_year_issues.keys():
 
             # Creating the output folders if needed
-            #TODO to put in try/catch
             output_folder_raw = "./data/raw/public/" + str(year) + "/" + issue
             Path(output_folder_raw).mkdir(parents=True, exist_ok=True)
             output_folder_parsed = "./data/parsed/public/" + str(year) + "/" + issue
@@ -251,7 +268,7 @@ if __name__ == '__main__':
 
             # Saving the articles as json files
             for article_title, article_text in this_issue_articles_paragraphs_text.items():
-                article_url = this_issues_articles[article_title]
+                article_url = this_issue_articles[article_title]
                 parser.save_article_to_json(
                                              output_folder = output_folder_parsed,
                                              year = year,
