@@ -1,6 +1,7 @@
 import json
 from bs4 import BeautifulSoup
 import os
+import logging
 
 class ArticleParser:
     '''
@@ -28,7 +29,7 @@ class ArticleParser:
         article = parsed_page.find('article')
         paragraphs = article.findAll('p')
 
-        paragraphs_dict = {p['id']: p for p in paragraphs}
+        paragraphs_dict = {p['id']: p for p in paragraphs if p.has_attr('id')}
 
         return paragraphs_dict
     
@@ -90,5 +91,5 @@ class ArticleParser:
                   }
 
         with open(os.path.join(output_folder, article_id + ".json"), 'w') as f:
-            json.dump(article, f)
+            json.dump(article, f, ensure_ascii=False)
 
