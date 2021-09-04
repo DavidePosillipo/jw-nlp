@@ -3,6 +3,8 @@
 *.swo
 *.DS_Store
 data/
+data.ms/
+*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
