@@ -4,6 +4,8 @@ import spacy
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 import pickle
+import requests
+from jwnlp.nlp.summarization.summarize_article import summarize_article
 
 st.title("JW-NLP")
 
@@ -48,3 +50,8 @@ plt.imshow(wordcloud_n, interpolation='bilinear')
 plt.axis("off")
 plt.show()
 st.pyplot()
+
+# text summarization
+to_summarize = "/Users/davideposillipo/Documents/Data_science/Pipeline_academy/portfolio_project.nosync/repo_jw/jw-nlp/data/parsed/generic/1997/january-1/1997004.json"
+summary = summarize_article(to_summarize, "hshsh", max_length=450)
+summary
