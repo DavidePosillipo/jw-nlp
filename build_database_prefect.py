@@ -16,12 +16,14 @@ def create_db():
     return command
 
 @task
-def create_db_schema():
+def create_db_schema(user="admin"):
     '''
     Create the database schema for the new database (only once)
     '''
     #TODO call the sql file via psql with a shellTask
-    pass
+    command = f"psql -U {user} -d jwnlp -f ./db/db_schema.sql" 
+
+    return command
 
 @task
 def scrape_batch():
@@ -46,4 +48,9 @@ with Flow("jw-nlp") as flow:
 
     create_db_cmd = create_db()
     create_db_via_shell = ShellTask(create_db_cmd)
+
+    create_schema_cmd = create_db_schema(user="admin", upstream_tasks=[create_db_via_shell])
+    create_schema_via_shell = ShellTask(create_schema_cmd)
+
+    
 
