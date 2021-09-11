@@ -5,13 +5,15 @@ import aiohttp
 import asyncio
 import os
 import logging
+from jwnlp.utils.config import Config
 
 class wtScraper:
 
     def __init__(self, language):
         self.language = language
-        self.homepage = 'https://wol.jw.org/' + self.language + '/wol/library/r1/lp-e/all-publications/watchtower'
-        self.root = 'https://wol.jw.org'
+        self.root = Config.base_url_root
+        self.watchtower_url = Config.watchtower_url
+        self.homepage = self.root + '/' + self.language + self.watchtower_url
 
     
     def get_years(self):

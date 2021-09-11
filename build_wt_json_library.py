@@ -11,7 +11,22 @@ import traceback
 import sys
 
 
-if __name__ == '__main__':
+def scrape_wt_batch(language: str, starting_year=1950):
+    '''
+    Execute a full scraping of the JW website, in order to retrieve 
+    all the available Watchtower issues, for the given language. 
+    It uses async calls that currently work only OUTSIDE of a VPN.
+
+    It creates a library on the filesystem with each article from each 
+    issue saved both as a raw page (in txt) and as parsed JSON file.
+
+    Args:
+        language (str): The desired language of the issues that must be scraped
+        starting_year (int): The first year of the collection to be scraped
+
+    Returns:
+        None   
+    '''
     
     logging.basicConfig(handlers=[
                                   logging.FileHandler("./temp/scraping.log"),
@@ -108,7 +123,6 @@ if __name__ == '__main__':
             return output_dict
 
     
-    language = 'en'
     scraper = wtScraper(language)
 
     logger.info("STEP 0 - Scraping the years")
@@ -117,7 +131,7 @@ if __name__ == '__main__':
     #### STEP 1 ####
     # Retrieving the issues links for the WT up to 2007
     logger.info("STEP 1 - Retrieving issues links")
-    links_by_year_pre_2008 = {y: l for (y, l) in links_by_year.items() if y<2008}
+    links_by_year_pre_2008 = {y: l for (y, l) in links_by_year.items() if y<2008 and y>=starting_year}
     loop = asyncio.get_event_loop()
     future = asyncio.ensure_future(extract(scraper.get_issues_links, links_by_year_pre_2008))
     # {year: {issue_id: link, ...}, ...}
