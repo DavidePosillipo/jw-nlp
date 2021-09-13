@@ -5,6 +5,7 @@ from prefect.tasks.shell import ShellTask
 from datetime import datetime
 import json
 import psycopg2
+import logging
 
 from build_wt_json_library import scrape_wt_batch
 from jwnlp.utils.config import Config
