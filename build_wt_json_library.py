@@ -10,8 +10,9 @@ import logging
 import traceback
 import sys
 
+#TODO handle better the combinations of starting and final year, or put assert at least
 
-def scrape_wt_batch(language: str, starting_year=1950):
+def scrape_wt_batch(language: str, starting_year=1950, final_year=2021):
     '''
     Execute a full scraping of the JW website, in order to retrieve 
     all the available Watchtower issues, for the given language. 
@@ -20,9 +21,12 @@ def scrape_wt_batch(language: str, starting_year=1950):
     It creates a library on the filesystem with each article from each 
     issue saved both as a raw page (in txt) and as parsed JSON file.
 
+    CAVEAT: it works only if starting_year < 2008 and final_year > 2008
+
     Args:
         language (str): The desired language of the issues that must be scraped
         starting_year (int): The first year of the collection to be scraped
+        final_year (int): The last year of the collection to be scraped
 
     Returns:
         None   
@@ -142,7 +146,7 @@ def scrape_wt_batch(language: str, starting_year=1950):
     # Retrieving the issues links for the WT from 2008
     logger.info("STEP 2 - Retrieving issues links post 2007")
     # A link for each year, but not to the issue, but to the study-public fork
-    links_by_year_from_2008 = {y: l for (y, l) in links_by_year.items() if y>=2008}
+    links_by_year_from_2008 = {y: l for (y, l) in links_by_year.items() if y>=2008 and y<=final_year}
 
     ## STEP 2.1 ##
     # Retrieving the different links for study and public versions

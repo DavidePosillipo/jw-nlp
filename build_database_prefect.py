@@ -9,7 +9,8 @@ import psycopg2
 from build_wt_json_library import scrape_wt_batch
 from jwnlp.utils.config import Config
 
-logger = prefect.context.get("logger")
+#logger = prefect.context.get("logger")
+logger = logging.getLogger(__name__)
 
 @task
 def create_db(user: str, database: str):
@@ -123,6 +124,7 @@ with Flow("jw-nlp") as flow:
     if need_to_batch_scraping:
         scrape_batch_result = scrape_batch(language='en', 
                                     starting_year=2006, #2006 only for debug
+                                    final_year=2009, #2009 only for debug
                                     upstream_tasks=[need_to_batch_scraping])
 
         populate_db_cmd = populate_database(user=username, database=database_name,
