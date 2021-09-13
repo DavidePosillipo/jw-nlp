@@ -4,8 +4,8 @@
 # into the destination database
 
 FOLDER="${folder}"
-DATABASE="${database:-jwnlp}"
-USER="${user:-admin}"
+DATABASE="${database}"
+USER="${user}"
 
 find "${FOLDER}" -type f -name "*.json" | while read file
 do

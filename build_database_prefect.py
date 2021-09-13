@@ -117,6 +117,7 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
     create_db_cmd = create_db(user=username, database=database_name)
     create_db_via_shell = shell_task(create_db_cmd)
 
+    #TODO the schema needs to be created only once, when the db is created
     create_schema_cmd = create_db_schema(user=username,
         database=database_name,
         upstream_tasks=[create_db_via_shell])
