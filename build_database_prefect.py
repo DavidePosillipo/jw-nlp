@@ -58,6 +58,30 @@ def scrape_batch(language: str, starting_year: int):
     scrape_wt_batch(language, starting_year)
 
 @task
+def check_if_batch_exists(user: str, database: str):
+    '''
+    Check if the database contains already the batch scraping data.
+    If not, the flow will perform the batch scraping. 
+
+    Args:
+        user (str): the username for the database
+        database (str): the name of the database
+
+    Returns:
+        boolean: True if the batch exists already
+    '''
+    conn = psycopg2.connect(f"dbname={database} user={user}")
+    cur = conn.cursor()
+    cur.execute("""
+                SELECT is_batch_downloaded
+                FROM publications
+                WHERE name='Watchtower';
+                """
+                )
+
+    return cur.fetchall()
+
+@task
 def populate_database(user: str, database: str):
     '''
     Populate the database with the available files.
@@ -88,17 +112,10 @@ with Flow("jw-nlp") as flow:
         upstream_tasks=[create_db_via_shell])
     create_schema_via_shell = shell_task(create_schema_cmd)
 
-    # Check if the batch scraping already happened
-    conn = psycopg2.connect(f"dbname={database_name} user={username}")
-    cur = conn.cursor()
-    cur.execute("""
-                SELECT is_batch_downloaded
-                FROM publications
-                WHERE name='Watchtower';
-                """
-                )
-    # If is_batch_downloaded is False, then perform the batch scraping
-    if not cur.fetchall():
+    need_to_batch_scraping = check_if_batch_exists(user=username, database=database_name,
+                                upstream_tasks=[create_db_via_shell, create_schema_via_shell])
+
+    if need_to_batch_scraping:
         scrape_batch(language='en', 
                      starting_year=2006, #2006 only for debug
                      upstream_tasks=[create_schema_via_shell])
