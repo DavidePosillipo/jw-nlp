@@ -118,7 +118,7 @@ with Flow("jw-nlp") as flow:
     if need_to_batch_scraping:
         scrape_batch(language='en', 
                      starting_year=2006, #2006 only for debug
-                     upstream_tasks=[create_schema_via_shell])
+                     upstream_tasks=[check_if_batch_exists])
         
         
    
