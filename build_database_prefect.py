@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import psycopg2
 
-from .build_wt_json_library import scrape_wt_batch
+from build_wt_json_library import scrape_wt_batch
 from jwnlp.utils.config import Config
 
 logger = prefect.context.get("logger")
