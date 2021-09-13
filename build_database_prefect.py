@@ -104,7 +104,8 @@ with Flow("jw-nlp") as flow:
                      upstream_tasks=[create_schema_via_shell])
         
         
-    
+   
+flow.register(project_name="jwnlp") 
 
     
 
