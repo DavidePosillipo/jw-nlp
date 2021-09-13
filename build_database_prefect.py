@@ -46,20 +46,21 @@ def create_db_schema(user: str, database: str):
     return command
 
 @task
-def scrape_batch(language: str, starting_year: int):
+def scrape_batch(language: str, starting_year: int, final_year: int):
     '''
     Scrape the Watchtower articles in the JW website in batch mode, only the first time.
 
     Args:
         language (str): the language of the articles to be scraped
         starting_year (int): the first year of the collections of articles to be scraped
+        final_year (int): the last year of the collections of articles to be scraped
 
     Returns:
-        None
+        prefect Signal: Success or Fail 
     '''
     #TODO put language parameters in some config file 
     try:
-        scrape_wt_batch(language, starting_year)
+        scrape_wt_batch(language, starting_year, final_year)
         return signals.SUCCESS()
     except:
         return signals.FAIL()    
