@@ -120,7 +120,7 @@ with Flow("jw-nlp") as flow:
                      starting_year=2006, #2006 only for debug
                      upstream_tasks=[need_to_batch_scraping])
 
-        populate_db_cmd = populate_database(user=user_name, database=database_name)
+        populate_db_cmd = populate_database(user=username, database=database_name)
         populate_db_via_shell = shell_task(populate_db_cmd)
         
         
