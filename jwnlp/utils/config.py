@@ -6,7 +6,7 @@ class Config:
     base_url_root =  'https://wol.jw.org'
     watchtower_url = '/wol/library/r1/lp-e/all-publications/watchtower'
 
-    database_name = 'jwnlp'
+    database_name = 'debug'
     user_name = 'admin'
 
     
