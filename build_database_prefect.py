@@ -81,12 +81,12 @@ with Flow("jw-nlp") as flow:
     database_name = Config.database_name
 
     create_db_cmd = create_db(user=username, database=database_name)
-    create_db_via_shell = ShellTask(create_db_cmd)
+    create_db_via_shell = shell_task(create_db_cmd)
 
     create_schema_cmd = create_db_schema(user=username,
         database=database_name,
         upstream_tasks=[create_db_via_shell])
-    create_schema_via_shell = ShellTask(create_schema_cmd)
+    create_schema_via_shell = shell_task(create_schema_cmd)
 
     # Check if the batch scraping already happened
     conn = psycopg2.connect(f"dbname={database_name} user={username}")
