@@ -98,7 +98,7 @@ with Flow("jw-nlp") as flow:
                 """
                 )
     # If is_batch_downloaded is False, then perform the batch scraping
-    if !(cur.fetchall()):
+    if not cur.fetchall():
         scrape_batch(language='en', 
                      starting_year=2006, #2006 only for debug
                      upstream_tasks=[create_schema_via_shell])
