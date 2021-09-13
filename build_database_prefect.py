@@ -2,6 +2,7 @@ import prefect
 from prefect import task, Flow, Parameter
 from prefect.engine import signals
 from prefect.tasks.shell import ShellTask
+from prefect.run_configs import LocalRun
 from datetime import datetime
 import json
 import psycopg2
@@ -89,7 +90,7 @@ def check_if_batch_exists(user: str, database: str):
 
     return cur.fetchall()
 
-@task
+@task(log_stdout=True)
 def populate_database(user: str, database: str):
     '''
     Populate the database with the available files.
@@ -101,13 +102,14 @@ def populate_database(user: str, database: str):
     Returns
         str: the command to be executed by the ShellTask
     '''
+    print("here")
     command = f"sh ./db/populate_db.sh --folder ./data/parsed --user {user} --database {database}"
 
     return command
 
 shell_task = ShellTask()
 
-with Flow("jw-nlp") as flow:
+with Flow("jw-nlp", run_config=LocalRun()) as flow:
 
     username = Config.user_name
     database_name = Config.database_name
