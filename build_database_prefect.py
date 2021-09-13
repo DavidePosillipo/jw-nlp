@@ -103,7 +103,8 @@ def populate_database(user: str, database: str):
         str: the command to be executed by the ShellTask
     '''
     print("here")
-    command = f"sh ./db/populate_db.sh --folder ./data/parsed --user {user} --database {database}"
+    #TODO how to pass named arguments?
+    command = f"sh ./db/populate_db.sh ./data/parsed {user} {database}"
 
     return command
 

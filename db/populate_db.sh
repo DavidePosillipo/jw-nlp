@@ -3,9 +3,9 @@
 # Insert all the JSON files present in the FOLDER field (and subfolders)
 # into the destination database
 
-FOLDER="${folder}"
-DATABASE="${database}"
-USER="${user}"
+FOLDER="${1}"
+DATABASE="${3}"
+USER="${2}"
 
 find "${FOLDER}" -type f -name "*.json" | while read file
 do
