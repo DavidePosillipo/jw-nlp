@@ -16,10 +16,11 @@ CREATE TABLE IF NOT EXISTS publications (
 ); 
 
 /* Creating indeces */
-CREATE INDEX idx_articleId ON watchtowers_articles ((data->'article_id'));
-CREATE INDEX idx_year ON watchtowers_articles ((data->'year'));
+CREATE INDEX IF NOT EXISTS idx_articleId ON watchtowers_articles ((data->'article_id'));
+CREATE INDEX IF NOT EXISTS idx_year ON watchtowers_articles ((data->'year'));
 
 /* Setting up the publications table */
-INSERT INTO publications(name, is_periodical, is_batch_downloaded, last_update)
-    VALUES ('Watchtower', true, false, CURRENT_DATE);
+INSERT INTO publications(name, is_periodical, is_batch_downloaded, last_update) 
+    VALUES ('Watchtower', true, false, CURRENT_DATE)
+    ON CONFLICT (name) DO NOTHING;
  

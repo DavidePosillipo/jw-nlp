@@ -11,8 +11,8 @@ import logging
 from build_wt_json_library import scrape_wt_batch
 from jwnlp.utils.config import Config
 
-#logger = prefect.context.get("logger")
-logger = logging.getLogger(__name__)
+logger = prefect.context.get("logger")
+#logger = logging.getLogger(__name__)
 
 @task
 def create_db(user: str, database: str):
@@ -62,8 +62,10 @@ def scrape_batch(language: str, starting_year: int, final_year: int):
     #TODO put language parameters in some config file 
     try:
         scrape_wt_batch(language, starting_year, final_year)
+        logger.info("Batch scraping completed")
         return signals.SUCCESS()
     except:
+        logger.info("Batch scraping not needed")
         return signals.FAIL()    
 
 @task
