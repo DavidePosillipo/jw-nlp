@@ -65,7 +65,7 @@ def scrape_batch(publication: str, language: str, starting_year: int, final_year
     cur.execute(f"""
                 SELECT is_batch_downloaded
                 FROM publications
-                WHERE name={publication} AND language={language};
+                WHERE name='{publication}' AND language='{language}';
                 """
                 )
     if cur.fetchall()[0][0]:
@@ -93,7 +93,7 @@ def update_publications_table(user: str, database: str, publication: str, langua
         cur = conn.cursor()
         cur.execute(f"""
                     INSERT INTO publications(name, language, is_periodical, is_batch_downloaded, is_batch_uploaded_on_db, creation_date, last_update)
-                        VALUES ({publication}, {language}, true, false, false, CURRENT_DATE, CURRENT_DATE)
+                        VALUES ('{publication}', '{language}', true, false, false, CURRENT_DATE, CURRENT_DATE)
                         ON CONFLICT (name, language) DO NOTHING;
                     """
                     )
@@ -109,9 +109,9 @@ def update_publications_table(user: str, database: str, publication: str, langua
                         is_batch_downloaded = true,
                         last_update = CURRENT_DATE
                     WHERE
-                        name = {publication}
+                        name = '{publication}'
                         AND
-                        language = {language}
+                        language = '{language}'
                     ; 
                     """
                     )
@@ -127,9 +127,9 @@ def update_publications_table(user: str, database: str, publication: str, langua
                         is_batch_uploaded_on_db = true,
                         last_update = CURRENT_DATE
                     WHERE
-                        name = {publication}
+                        name = '{publication}'
                         AND
-                        language = {language}
+                        language = '{language}'
                     ; 
                     """
                     )
