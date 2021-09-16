@@ -160,7 +160,7 @@ def populate_database(user: str, database: str):
                 """
                 )
     if cur.fetchall()[0][0]:
-        logger.info("Batch scraping already happened, skipping this task")
+        logger.info("Scraped batch already uploaded to DB, skipping this task")
         raise signals.SKIP()
     else:
         logger.info("Populating the database with the scraped batch")
@@ -172,12 +172,16 @@ shell_task = ShellTask()
 
 with Flow("jw-nlp", run_config=LocalRun()) as flow:
 
+    #### SETTINGS ####
     username = Config.user_name
     database_name = Config.database_name
 
     publication = "Watchtower"
     language = "en"
 
+    #################
+    ## DB CREATION ##
+    #################
     #TODO generalize to creation of other tables for other publications. 
     # -> currently only watchtowers in english are stored
     create_db_cmd = create_db(user=username, database=database_name)
@@ -189,7 +193,7 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
         upstream_tasks=[create_db_via_shell])
     create_schema_via_shell = shell_task(create_schema_cmd)
     
-    # The schema was created
+    # The schema was created, initializing the publications table
     up_pub_tab_1 = update_publications_table(user=username,
                                 database=database_name,
                                 publication=publication,
@@ -197,6 +201,9 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
                                 schema_created=True,
                                 upstream_tasks=[create_schema_via_shell])
 
+    ####################
+    ## BATCH SCRAPING ##
+    ####################
     scrape_batch_result = scrape_batch(publication=publication,
                                     language=language, 
                                     starting_year=2006, #2006 only for debug
@@ -213,20 +220,27 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
                                 batch_downloaded=True,
                                 upstream_tasks=[scrape_batch_result])
 
-    # by default skipped if the upstream task is skipped
+    ###################
+    ## DB POPULATING ##
+    ###################
     #TODO add parameter for table name and path where the json are stored
     populate_db_cmd = populate_database(user=username, 
                                         database=database_name,
                                 upstream_tasks=[up_pub_tab_2])
     populate_db_via_shell = shell_task(populate_db_cmd)
         
-    # The scraped batch was downloaded 
+    # The database was populated 
     up_pub_tab_3 = update_publications_table(user=username,
                                 database=database_name,
                                 publication=publication,
                                 language=language,
                                 batch_uploaded_on_db=True,
                                 upstream_tasks=[populate_db_via_shell])
+
+    ######################
+    ## MONTHLY SCRAPING ##
+    ######################
+    # TODO
 
        
 flow.register(project_name="jwnlp") 
