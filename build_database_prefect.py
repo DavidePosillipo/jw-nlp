@@ -178,7 +178,7 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
     create_schema_via_shell = shell_task(create_schema_cmd)
     
     # The schema was created
-    update_publications_table(user=username,
+    up_pub_tab_1 = update_publications_table(user=username,
                                 database=database_name,
                                 publication=publication,
                                 language=language,
@@ -191,17 +191,32 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
                                     final_year=2009, #2009 only for debug
                                     user=username,
                                     database=database_name,
-                                    upstream_tasks=[create_schema_via_shell, update_publications_table])
+                                    upstream_tasks=[up_pub_tab_1])
+
+    # The scraped batch was downloaded 
+    up_pub_tab_2 = update_publications_table(user=username,
+                                database=database_name,
+                                publication=publication,
+                                language=language,
+                                batch_downloaded=True,
+                                upstream_tasks=[scrape_batch_result])
 
     # by default skipped if the upstream task is skipped
     #TODO add parameter for table name and path where the json are stored
     populate_db_cmd = populate_database(user=username, 
                                         database=database_name,
-                                upstream_tasks=[scrape_batch_result])
+                                upstream_tasks=[up_pub_tab_2])
     populate_db_via_shell = shell_task(populate_db_cmd)
         
-        
-   
+    # The scraped batch was downloaded 
+    up_pub_tab_3 = update_publications_table(user=username,
+                                database=database_name,
+                                publication=publication,
+                                language=language,
+                                batch_uploaded_on_db=True,
+                                upstream_tasks=[populate_db_via_shell])
+
+       
 flow.register(project_name="jwnlp") 
 
     
