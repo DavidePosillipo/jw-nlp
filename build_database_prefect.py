@@ -82,7 +82,7 @@ def scrape_batch(publication: str, language: str, starting_year: int, final_year
             logger.info("Batch scraping not successful!")
             return signals.FAIL()    
     
-@task
+@task(skip_on_upstream_skip=False)
 def update_publications_table(user: str, database: str, publication: str, language: str, 
                                 schema_created=False,
                                 batch_downloaded=False,
@@ -151,9 +151,22 @@ def populate_database(user: str, database: str):
     Returns
         str: the command to be executed by the ShellTask
     '''
-    #TODO how to pass named arguments?
-    command = f"sh ./db/populate_db.sh ./data/parsed {user} {database}"
-
+    conn = psycopg2.connect(f"dbname={database} user={user}")
+    cur = conn.cursor()
+    cur.execute(f"""
+                SELECT is_batch_uploaded_on_db 
+                FROM publications
+                WHERE name='{publication}' AND language='{language}';
+                """
+                )
+    if cur.fetchall()[0][0]:
+        logger.info("Batch scraping already happened, skipping this task")
+        raise signals.SKIP()
+    else:
+        try:
+        logger.info("Populating the database with the scraped batch")
+        #TODO how to pass named arguments?
+        command = f"sh ./db/populate_db.sh ./data/parsed {user} {database}"
     return command
 
 shell_task = ShellTask()
