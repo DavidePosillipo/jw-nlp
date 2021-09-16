@@ -163,7 +163,6 @@ def populate_database(user: str, database: str):
         logger.info("Batch scraping already happened, skipping this task")
         raise signals.SKIP()
     else:
-        try:
         logger.info("Populating the database with the scraped batch")
         #TODO how to pass named arguments?
         command = f"sh ./db/populate_db.sh ./data/parsed {user} {database}"
