@@ -47,7 +47,7 @@ def create_db_schema(user: str, database: str):
     return command
 
 @task
-def scrape_batch(language: str, starting_year: int, final_year: int):
+def scrape_batch(language: str, starting_year: int, final_year: int, user: str, database: str):
     '''
     Scrape the Watchtower articles in the JW website in batch mode, only the first time.
 
@@ -72,6 +72,7 @@ def scrape_batch(language: str, starting_year: int, final_year: int):
         raise signals.SKIP()
     else:
         try:
+            logger.info("Executing batch scraping. It may take a while...")
             scrape_wt_batch(language, starting_year, final_year)
             logger.info("Batch scraping completed")
             return signals.SUCCESS()
@@ -143,6 +144,8 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
     scrape_batch_result = scrape_batch(language='en', 
                                     starting_year=2006, #2006 only for debug
                                     final_year=2009, #2009 only for debug
+                                    user=username,
+                                    database=database_name,
                                     upstream_tasks=[create_schema_via_shell])
 
     # by default skipped if the upstream task is skipped
