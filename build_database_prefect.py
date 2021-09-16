@@ -86,7 +86,7 @@ def scrape_batch(publication: str, language: str, starting_year: int, final_year
 def update_publications_table(user: str, database: str, publication: str, language: str, 
                                 schema_created=False,
                                 batch_downloaded=False,
-                                batch_uploaded_on_db=False)
+                                batch_uploaded_on_db=False):
 
     if schema_created:
         conn = psycopg2.connect(f"dbname={database} user={user}")
