@@ -8,19 +8,16 @@ CREATE TABLE IF NOT EXISTS watchtowers_articles (
 /* Table containing the description of the
 publications available in the database */
 CREATE TABLE IF NOT EXISTS publications (
-    publication_id SERIAL PRIMARY KEY,
-    name VARCHAR UNIQUE,
+    name VARCHAR NOT NULL,
+    language VARCHAR NOT NULL,
     is_periodical BOOLEAN,
     is_batch_downloaded BOOLEAN,
-    last_update DATE
+    is_batch_uploaded_on_db BOOLEAN,
+    creation_date DATE,
+    last_update DATE,
+    PRIMARY KEY (name, language)
 ); 
 
 /* Creating indeces */
 CREATE INDEX IF NOT EXISTS idx_articleId ON watchtowers_articles ((data->'article_id'));
 CREATE INDEX IF NOT EXISTS idx_year ON watchtowers_articles ((data->'year'));
-
-/* Setting up the publications table */
-INSERT INTO publications(name, is_periodical, is_batch_downloaded, last_update) 
-    VALUES ('Watchtower', true, false, CURRENT_DATE)
-    ON CONFLICT (name) DO NOTHING;
- 

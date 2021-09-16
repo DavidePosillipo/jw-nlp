@@ -47,11 +47,12 @@ def create_db_schema(user: str, database: str):
     return command
 
 @task
-def scrape_batch(language: str, starting_year: int, final_year: int, user: str, database: str):
+def scrape_batch(publication: str, language: str, starting_year: int, final_year: int, user: str, database: str):
     '''
     Scrape the Watchtower articles in the JW website in batch mode, only the first time.
 
     Args:
+        publication (str): the name of the publication to be scraped
         language (str): the language of the articles to be scraped
         starting_year (int): the first year of the collections of articles to be scraped
         final_year (int): the last year of the collections of articles to be scraped
@@ -61,10 +62,10 @@ def scrape_batch(language: str, starting_year: int, final_year: int, user: str, 
     '''
     conn = psycopg2.connect(f"dbname={database} user={user}")
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(f"""
                 SELECT is_batch_downloaded
                 FROM publications
-                WHERE name='Watchtower';
+                WHERE name={publication} AND language={language};
                 """
                 )
     if cur.fetchall()[0][0]:
@@ -73,6 +74,7 @@ def scrape_batch(language: str, starting_year: int, final_year: int, user: str, 
     else:
         try:
             logger.info("Executing batch scraping. It may take a while...")
+            #TODO select the proper function for different publications (now it is wt)
             scrape_wt_batch(language, starting_year, final_year)
             logger.info("Batch scraping completed")
             return signals.SUCCESS()
@@ -81,31 +83,64 @@ def scrape_batch(language: str, starting_year: int, final_year: int, user: str, 
             return signals.FAIL()    
     
 @task
-def check_if_batch_exists(user: str, database: str):
-    '''
-    Check if the database contains already the batch scraping data.
-    If not, the flow will perform the batch scraping. 
+def update_publications_table(user: str, database: str, publication: str, language: str, 
+                                schema_created=False,
+                                batch_downloaded=False,
+                                batch_uploaded_on_db=False)
 
-    Args:
-        user (str): the username for the database
-        database (str): the name of the database
+    if schema_created:
+        conn = psycopg2.connect(f"dbname={database} user={user}")
+        cur = conn.cursor()
+        cur.execute(f"""
+                    INSERT INTO publications(name, language, is_periodical, is_batch_downloaded, is_batch_uploaded_on_db, creation_date, last_update)
+                        VALUES ({publication}, {language}, true, false, false, CURRENT_DATE, CURRENT_DATE)
+                        ON CONFLICT (name, language) DO NOTHING;
+                    """
+                    )
+        conn.commit()
+        cur.close()
+        conn.close()
+    else if batch_downloaded:
+        conn = psycopg2.connect(f"dbname={database} user={user}")
+        cur = conn.cursor()
+        cur.execute(f"""
+                    UPDATE publications
+                    SET
+                        is_batch_downloaded = true,
+                        last_update = CURRENT_DATE
+                    WHERE
+                        name = {publication}
+                        AND
+                        language = {language}
+                    ; 
+                    """
+                    )
+        conn.commit()
+        cur.close()
+        conn.close()
+    else if batch_uploaded_on_db:
+        conn = psycopg2.connect(f"dbname={database} user={user}")
+        cur = conn.cursor()
+        cur.execute(f"""
+                    UPDATE publications
+                    SET
+                        is_batch_uploaded_on_db = true,
+                        last_update = CURRENT_DATE
+                    WHERE
+                        name = {publication}
+                        AND
+                        language = {language}
+                    ; 
+                    """
+                    )
+        conn.commit()
+        cur.close()
+        conn.close()
+    else:
+        raise signals.SKIP()
 
-    Returns:
-        boolean: True if the batch exists already
-    '''
-    conn = psycopg2.connect(f"dbname={database} user={user}")
-    cur = conn.cursor()
-    cur.execute("""
-                SELECT is_batch_downloaded
-                FROM publications
-                WHERE name='Watchtower';
-                """
-                )
-
-    return cur.fetchall()[0][0]
-
-@task(log_stdout=True)
-def populate_database(user: str, database: str):
+@task
+def populate_database(user: str, database: str, publication: str, language: str):
     '''
     Populate the database with the available files.
 
@@ -116,7 +151,6 @@ def populate_database(user: str, database: str):
     Returns
         str: the command to be executed by the ShellTask
     '''
-    print("here")
     #TODO how to pass named arguments?
     command = f"sh ./db/populate_db.sh ./data/parsed {user} {database}"
 
@@ -129,27 +163,40 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
     username = Config.user_name
     database_name = Config.database_name
 
+    publication = "Watchtower"
+    language = "en"
+
+    #TODO generalize to creation of other tables for other publications. 
+    # -> currently only watchtowers in english are stored
     create_db_cmd = create_db(user=username, database=database_name)
     create_db_via_shell = shell_task(create_db_cmd)
 
-    #TODO the schema needs to be created only once, when the db is created
+    
     create_schema_cmd = create_db_schema(user=username,
         database=database_name,
         upstream_tasks=[create_db_via_shell])
     create_schema_via_shell = shell_task(create_schema_cmd)
+    
+    # The schema was created
+    update_publications_table(user=username,
+                                database=database_name,
+                                publication=publication,
+                                language=language,
+                                schema_created=True,
+                                upstream_tasks=[create_schema_via_shell])
 
-   # need_to_batch_scraping = check_if_batch_exists(user=username, database=database_name,
-   #                             upstream_tasks=[create_db_via_shell, create_schema_via_shell])
-
-    scrape_batch_result = scrape_batch(language='en', 
+    scrape_batch_result = scrape_batch(publication=publication,
+                                    language=language, 
                                     starting_year=2006, #2006 only for debug
                                     final_year=2009, #2009 only for debug
                                     user=username,
                                     database=database_name,
-                                    upstream_tasks=[create_schema_via_shell])
+                                    upstream_tasks=[create_schema_via_shell, update_publications_table])
 
     # by default skipped if the upstream task is skipped
-    populate_db_cmd = populate_database(user=username, database=database_name,
+    #TODO add parameter for table name and path where the json are stored
+    populate_db_cmd = populate_database(user=username, 
+                                        database=database_name,
                                 upstream_tasks=[scrape_batch_result])
     populate_db_via_shell = shell_task(populate_db_cmd)
         
