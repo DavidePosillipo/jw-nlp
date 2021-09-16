@@ -100,7 +100,7 @@ def update_publications_table(user: str, database: str, publication: str, langua
         conn.commit()
         cur.close()
         conn.close()
-    else if batch_downloaded:
+    elif batch_downloaded:
         conn = psycopg2.connect(f"dbname={database} user={user}")
         cur = conn.cursor()
         cur.execute(f"""
@@ -118,7 +118,7 @@ def update_publications_table(user: str, database: str, publication: str, langua
         conn.commit()
         cur.close()
         conn.close()
-    else if batch_uploaded_on_db:
+    elif batch_uploaded_on_db:
         conn = psycopg2.connect(f"dbname={database} user={user}")
         cur = conn.cursor()
         cur.execute(f"""
