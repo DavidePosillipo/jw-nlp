@@ -140,7 +140,7 @@ def update_publications_table(user: str, database: str, publication: str, langua
         raise signals.SKIP()
 
 @task
-def populate_database(user: str, database: str, publication: str, language: str):
+def populate_database(user: str, database: str):
     '''
     Populate the database with the available files.
 
