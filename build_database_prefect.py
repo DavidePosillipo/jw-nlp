@@ -59,15 +59,26 @@ def scrape_batch(language: str, starting_year: int, final_year: int):
     Returns:
         prefect Signal: Success or Fail 
     '''
-    #TODO put language parameters in some config file 
-    try:
-        scrape_wt_batch(language, starting_year, final_year)
-        logger.info("Batch scraping completed")
-        return signals.SUCCESS()
-    except:
-        logger.info("Batch scraping not needed")
-        return signals.FAIL()    
-
+    conn = psycopg2.connect(f"dbname={database} user={user}")
+    cur = conn.cursor()
+    cur.execute("""
+                SELECT is_batch_downloaded
+                FROM publications
+                WHERE name='Watchtower';
+                """
+                )
+    if cur.fetchall()[0][0]:
+        logger.info("Batch scraping already happened, skipping this task")
+        raise signals.SKIP()
+    else:
+        try:
+            scrape_wt_batch(language, starting_year, final_year)
+            logger.info("Batch scraping completed")
+            return signals.SUCCESS()
+        except:
+            logger.info("Batch scraping not successful!")
+            return signals.FAIL()    
+    
 @task
 def check_if_batch_exists(user: str, database: str):
     '''
@@ -90,7 +101,7 @@ def check_if_batch_exists(user: str, database: str):
                 """
                 )
 
-    return cur.fetchall()
+    return cur.fetchall()[0][0]
 
 @task(log_stdout=True)
 def populate_database(user: str, database: str):
@@ -126,18 +137,18 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
         upstream_tasks=[create_db_via_shell])
     create_schema_via_shell = shell_task(create_schema_cmd)
 
-    need_to_batch_scraping = check_if_batch_exists(user=username, database=database_name,
-                                upstream_tasks=[create_db_via_shell, create_schema_via_shell])
+   # need_to_batch_scraping = check_if_batch_exists(user=username, database=database_name,
+   #                             upstream_tasks=[create_db_via_shell, create_schema_via_shell])
 
-    if need_to_batch_scraping:
-        scrape_batch_result = scrape_batch(language='en', 
+    scrape_batch_result = scrape_batch(language='en', 
                                     starting_year=2006, #2006 only for debug
                                     final_year=2009, #2009 only for debug
-                                    upstream_tasks=[need_to_batch_scraping])
+                                    upstream_tasks=[create_schema_via_shell])
 
-        populate_db_cmd = populate_database(user=username, database=database_name,
+    # by default skipped if the upstream task is skipped
+    populate_db_cmd = populate_database(user=username, database=database_name,
                                 upstream_tasks=[scrape_batch_result])
-        populate_db_via_shell = shell_task(populate_db_cmd)
+    populate_db_via_shell = shell_task(populate_db_cmd)
         
         
    

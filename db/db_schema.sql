@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS watchtowers_articles (
 publications available in the database */
 CREATE TABLE IF NOT EXISTS publications (
     publication_id SERIAL PRIMARY KEY,
-    name VARCHAR,
+    name VARCHAR UNIQUE,
     is_periodical BOOLEAN,
     is_batch_downloaded BOOLEAN,
     last_update DATE
