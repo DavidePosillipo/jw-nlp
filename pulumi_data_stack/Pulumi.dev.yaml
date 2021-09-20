@@ -1,0 +1,7 @@
+config:
+  gcp:project: jw-nlp
+  gcp:region: europe-west1
+  gcp:zone: europe-west1-b
+  jwnlp:db-name: project-db
+  jwnlp:db-password:
+    secure: AAABABRKZ+o/4CHL3hubS1lMxLWfOxIwlKfF5V1K4T1ccyLjOM8=
