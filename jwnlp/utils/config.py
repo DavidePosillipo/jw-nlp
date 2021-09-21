@@ -9,6 +9,10 @@ class Config:
     database_name = 'debug_4'
     user_name = 'project-db'
 
+    #TODO ONLY FOR DEBUG, TO REMOVE!
+    db_pwd = 'jwnlp!'
+
+    # gcloud database address
     database_address = '35.187.191.237'
     
 
