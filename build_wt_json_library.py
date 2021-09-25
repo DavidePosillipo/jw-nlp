@@ -123,6 +123,8 @@ def scrape_wt_batch(language: str, starting_year=1950, final_year=2021):
                 except Exception as e:
                     logger.error(f"An error occurred while processing the page {target_urls[key]}. The error is {traceback.format_exception(*sys.exc_info())}")
                     non_scraped_articles_dict[article_id] = {"article_id": article_id, "url": article_url, "error": traceback.format_exception(*sys.exc_info())}
+                    # go to the next article and stop processing this faulty one
+                    continue
                 
             return output_dict
 

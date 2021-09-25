@@ -85,7 +85,7 @@ def scrape_batch(publication: str, language: str, starting_year: int, final_year
             return signals.SUCCESS()
         except:
             logger.info("Batch scraping not successful!")
-            return signals.FAIL()    
+            raise signals.FAIL()    
     
 @task(skip_on_upstream_skip=False)
 def update_publications_table(host: str, user: str, port:str, database: str, password: str,
@@ -186,7 +186,7 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
     #### SETTINGS ####
     username = Config.user_name
     database_name = Config.database_name
-    database_password = Config.db_pwd
+    database_password = "admin963" 
     database_address = Config.database_address
     database_port = Config.database_port
 
@@ -238,7 +238,7 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
     # The scraped batch was downloaded 
     up_pub_tab_2 = update_publications_table(user=username,
                                 password=database_password,
-                                host=database_password,
+                                host=database_address,
                                 port=database_port,
                                 database=database_name,
                                 publication=publication,

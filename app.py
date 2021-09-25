@@ -8,6 +8,8 @@ from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 
+from flask import Flask, request, abort, redirect
+
 import psycopg2
 from jwnlp.utils.config import Config
 from jwnlp.dash.utils import (
@@ -15,14 +17,17 @@ from jwnlp.dash.utils import (
 )
 from jwnlp.nlp.summarization.summarize_article import summarize_article
 
-app = dash.Dash(__name__)
+server = Flask(__name__)
+app = dash.Dash(__name__, server=server, url_base_pathname="/app/")
 
 ##### CONFIGS #####
 
 database = Config.database_name
 user = Config.user_name
+host = Config.database_address
+port = Config.database_port
 
-conn = psycopg2.connect(f"dbname={database} user={user}")
+conn = psycopg2.connect(f"host={host} port={port} dbname={database} user={user}")
 
 years = get_years(conn)
 
@@ -122,5 +127,9 @@ def summarize_selected_article(article_id, n_clicks):
     else:
         return "Please select an article and click the Submit button", 0
  
-if __name__ == '__main__':
-    app.run_server(debug=True)
+@server.route("/")
+def render_dashboard():
+    return redirect("/app")
+
+#if __name__ == '__main__':
+#    app.run_server(debug=True)
