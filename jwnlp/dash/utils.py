@@ -48,3 +48,10 @@ def get_article_dict(engine, article_id: str):
 
     return article_dict
 
+def get_article_text(engine, article_id: str):
+    article_dict = get_article_dict(engine, article_id) 
+    paragraphs = {int(k[1:]): v for (k,v) in article_dict['paragraphs'].items()}
+    article_text = '\n'.join([p[1] for p in sorted(paragraphs.items())])
+
+    return article_text
+

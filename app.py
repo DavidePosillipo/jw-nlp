@@ -13,7 +13,7 @@ import psycopg2
 
 from jwnlp.utils.config import Config
 from jwnlp.dash.utils import (
-	get_years, get_issues, get_articles, get_article_dict
+	get_years, get_issues, get_articles, get_article_dict, get_article_text
 )
 from jwnlp.nlp.summarization.summarize_article import summarize_article
 
@@ -48,33 +48,28 @@ app.layout = html.Div(
                         ),
                     ]
                 ),
-    dcc.Dropdown(
-        id='years-dropdown',
-        options=[{'label': year, 'value': year} for year in years],
-        value=2006
-    ),
-
-    html.Hr(),
-
-    dcc.Dropdown(id='issues-dropdown'),
-
-    html.Hr(),
-
-    dcc.Dropdown(id='articles-dropdown'),
-    
-    html.Hr(),
-
-    html.Div(id='article-id-hidden', style={'display': 'none'}),
-
-    html.Hr(),
-
-    html.Button(id='submit-button-state', n_clicks=0, children='Submit'),
-
-    html.Hr(),
-
-    html.Div(id='article-summary')
-
-])
+            html.Div([
+                dcc.Dropdown(
+                    id='years-dropdown',
+                    options=[{'label': year, 'value': year} for year in years],
+                    value=2006
+                ),
+                html.Hr(),
+                dcc.Dropdown(id='issues-dropdown'),
+                html.Hr(),
+                dcc.Dropdown(id='articles-dropdown'),
+                html.Hr(),
+                html.Div(id='article-id-hidden', style={'display': 'none'}),
+                html.Hr(),
+                html.Div(id='article-original'),
+                html.Hr()
+                ]
+            ),
+            html.Button(id='submit-button-state', n_clicks=0, children='Summarize the article'),
+            html.Hr(),
+            html.Div(id='article-summary')
+            ]
+        )
 
 ##### CALLBACK ####
 
@@ -120,6 +115,20 @@ def set_articles_id_value(value):
     for the dropdown menu
     """
     return value.split("|")[1].strip()
+
+## Original article ##
+@app.callback(
+    Output('article-original', 'children'),
+    Input('article-id-hidden', 'children')
+)
+def show_original_article(article_id):
+    """
+    Returns the original article text
+    """
+    original = get_article_text(engine, article_id)
+
+    return original 
+
 
 ### Article summary ###
 @app.callback(
