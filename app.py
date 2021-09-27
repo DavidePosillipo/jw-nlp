@@ -18,7 +18,7 @@ from jwnlp.dash.utils import (
 from jwnlp.nlp.summarization.summarize_article import summarize_article
 
 server = Flask(__name__)
-app = dash.Dash(__name__, server=server, url_base_pathname="/app/")
+app = dash.Dash(__name__, server=server, url_base_pathname="/")
 
 ##### CONFIGS #####
 
@@ -29,7 +29,25 @@ years = get_years(engine)
 
 ##### LAYOUT #####
 
-app.layout = html.Div([
+app.layout = html.Div(
+        children=[
+            html.Div(
+                [
+                    html.H1(
+                        children=[
+                            "JW-NLP",
+                            html.A(
+                                html.Img(
+                                    src=app.get_asset_url("dash-logo.png"),
+                                    style={"float": "right", "height": "50px"},
+                                    ),
+                                href="https://dash.plot.ly/",
+                                ),
+                            ],
+                        style={"text-align": "left"},
+                        ),
+                    ]
+                ),
     dcc.Dropdown(
         id='years-dropdown',
         options=[{'label': year, 'value': year} for year in years],
@@ -125,7 +143,7 @@ def summarize_selected_article(article_id, n_clicks):
  
 @server.route("/")
 def render_dashboard():
-    return redirect("/app")
+    return redirect("/")
 
 #if __name__ == '__main__':
 #    app.run_server(debug=True)
