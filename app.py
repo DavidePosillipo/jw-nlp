@@ -1,6 +1,3 @@
-# Run this app with `python app.py` and
-# visit http://127.0.0.1:8050/ in your web browser.
-
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -10,7 +7,10 @@ import pandas as pd
 
 from flask import Flask, request, abort, redirect
 
+from sqlalchemy import create_engine
+from sqlalchemy import text
 import psycopg2
+
 from jwnlp.utils.config import Config
 from jwnlp.dash.utils import (
 	get_years, get_issues, get_articles, get_article_dict
@@ -22,14 +22,10 @@ app = dash.Dash(__name__, server=server, url_base_pathname="/app/")
 
 ##### CONFIGS #####
 
-database = Config.database_name
-user = Config.user_name
-host = Config.database_address
-port = Config.database_port
+db_uri = Config.db_uri
+engine = create_engine(db_uri, echo=True)
 
-conn = psycopg2.connect(f"host={host} port={port} dbname={database} user={user}")
-
-years = get_years(conn)
+years = get_years(engine)
 
 ##### LAYOUT #####
 
@@ -69,7 +65,7 @@ app.layout = html.Div([
     dash.dependencies.Output('issues-dropdown', 'options'),
     [dash.dependencies.Input('years-dropdown', 'value')])
 def set_issues_options(selected_year):
-    issues = get_issues(conn, int(selected_year))
+    issues = get_issues(engine, int(selected_year))
     return [{'label': i, 'value': i} for i in issues]
 
 @app.callback(
@@ -85,8 +81,8 @@ def set_issues_value(available_options):
      dash.dependencies.Input('issues-dropdown', 'value')]
 )
 def set_issues_options(selected_year, selected_issue):
-    issues = get_issues(conn, int(selected_year))
-    articles = get_articles(conn, int(selected_year), selected_issue)
+    issues = get_issues(engine, int(selected_year))
+    articles = get_articles(engine, int(selected_year), selected_issue)
     # title[0] is the title, title[1] is the ID
     return [{'label': title[0], 'value': " | ".join([title[0], title[1]])} for title in articles]
 
@@ -121,7 +117,7 @@ def summarize_selected_article(article_id, n_clicks):
     article but doesn't click on Submit.
     """
     if n_clicks>0:
-        article_dict = get_article_dict(conn, article_id)
+        article_dict = get_article_dict(engine, article_id)
         summary = summarize_article(article_dict)
         return summary, 0
     else:
