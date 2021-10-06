@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 import psycopg2
 import logging
+import os
 
 from build_wt_json_library import scrape_wt_batch
 from jwnlp.utils.config import Config
@@ -184,11 +185,13 @@ shell_task = ShellTask()
 with Flow("jw-nlp", run_config=LocalRun()) as flow:
 
     #### SETTINGS ####
-    username = Config.user_name
-    database_name = Config.database_name
-    database_password = "admin963" 
-    database_address = Config.database_address
-    database_port = Config.database_port
+#    username = Config.user_name
+#    database_name = Config.database_name
+#    database_password = "admin963" 
+#    database_address = Config.database_address
+#    database_port = Config.database_port
+#
+    database_uri = os.environ(['DATABASE_URI'])
 
     publication = "Watchtower"
     language = "en"
@@ -277,5 +280,7 @@ with Flow("jw-nlp", run_config=LocalRun()) as flow:
        
 flow.register(project_name="jwnlp") 
 
+if __name__=='__main--':
+    flow.run()
     
 

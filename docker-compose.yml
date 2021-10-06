@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+  database:
+    image: "postgres"
+    container_name: "jwnlp-postgres"
+    environment:
+      - POSTGRES_USER=${USERNAME}
+      - POSTGRES_PASSWORD=${PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    networks:
+      - default
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db/db_schema.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    restart: always
+ 
+  gui:
+    build: .
+    depends_on:
+      - database
+    environment:
+      STAGE: test
+      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${USERNAME}:${PASSWORD}@database:5432/${DATABASE_NAME}
+      DATABASE_URI: postgres://${USERNAME}:${PASSWORD}@database/${DATABASE_NAME}
+    networks:
+      - default
+    ports:
+      - 5000:5000
+    env_file: 
+      - .env
+    command: python3 app.py
+    volumes:
+      - ./:/usr/src/app
+    restart: always  

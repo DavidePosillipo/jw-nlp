@@ -11,6 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy import text
 import psycopg2
 
+import os
+
 from jwnlp.utils.config import Config
 from jwnlp.dash.utils import (
 	get_years, get_issues, get_articles, get_article_dict, get_article_text
@@ -22,7 +24,9 @@ app = dash.Dash(__name__, server=server, url_base_pathname="/")
 
 ##### CONFIGS #####
 
-db_uri = Config.db_uri
+#db_uri = Config.db_uri
+db_uri = os.environ['SQLALCHEMY_DATABASE_URI']
+print(db_uri)
 engine = create_engine(db_uri, echo=True)
 
 years = get_years(engine)
@@ -150,9 +154,9 @@ def summarize_selected_article(article_id, n_clicks):
     else:
         return "Please select an article and click the Submit button", 0
  
-@server.route("/")
-def render_dashboard():
-    return redirect("/")
+#@server.route("/")
+#def render_dashboard():
+#    return redirect("/")
 
-#if __name__ == '__main__':
-#    app.run_server(debug=True)
+if __name__ == '__main__':
+    app.run_server(host='0.0.0.0', port=5000, debug=True)
